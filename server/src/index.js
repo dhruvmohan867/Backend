@@ -4,6 +4,10 @@ import express from 'express'
 import { DB_NAME } from './constants.js';
 import connectDB from './db/index.js';
 import { app } from './app.js' 
+import dotenv from 'dotenv';
+dotenv.config();
+
+
 
 const PORT = process.env.PORT
 
@@ -15,5 +19,5 @@ connectDB()
      })
 })
 .catch((error)=>{
-    console.log(`Mongo Db is failled`)
+    console.log(`Mongo Db is failled , ${error.message}`);
 })

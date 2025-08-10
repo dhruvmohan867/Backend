@@ -4,6 +4,7 @@ import { DB_NAME } from '../constants.js';
 const connectDB = async ()=>{
    try {
    const connections = await  mongoose.connect(`${process.env.MONGODB_URL}/${DB_NAME}`)
+     console.log(process.env.MONGODB_URL)
      console.log(`\n MongoDB connected || DB Host : ${connections.connection.host}`);
      console.log(`properties: ${connections.Collection}`)
      
@@ -13,6 +14,7 @@ const connectDB = async ()=>{
     // })
     
    } catch (error) {
+    console.error(process.env.MONGODB_URL);
      console.log('MongoDB failed at db/index.js', error);
     process.exit(1)
    }
