@@ -126,12 +126,13 @@ npm run dev
 ```
 ### 🤝 Contributing
 
-Fork the repo
-git checkout -b feat/your-feature
-Commit your changes, push, open a PR
+- Fork the repo
+- git checkout -b feat/your-feature
+- Commit your changes, push, open a PR
 
 📝 License
 MIT © 2025 Dhruv Mohan Shukla
+
 
 
 
