@@ -99,6 +99,27 @@
 
  ---
 
+ ## 📂 Folder Structure
+
+ ```bash
+  server/
+├── public/
+│ └── temp/
+├── src/
+│ ├── controllers/
+│ ├── db/ 
+│ ├── middlewares/ 
+│ ├── models/ 
+│ ├── routes/ 
+│ ├── utils/ 
+│ ├── app.js 
+│ └── index.js
+├── .env.example 
+├── .gitignore
+├── package.json
+└── Licence
+```
+
 ## 🛠️ Local development
 
 ### Prerequisites
@@ -130,8 +151,11 @@ npm run dev
 - git checkout -b feat/your-feature
 - Commit your changes, push, open a PR
 
-📝 License
-MIT © 2025 Dhruv Mohan Shukla
+- [License](#license)
+
+
+
+
 
 
 
