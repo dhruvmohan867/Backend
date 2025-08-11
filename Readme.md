@@ -5,11 +5,12 @@
 ---
 
 ## 📚 Table of Contents
-- [Tech Stack](#Tech-stack)
-- [Key Features](#key-features)
-- [Folder Structure](#folder-structure)
-- [Local Development](#local-development)
-- [License](#License)
+- [Tech Stack](#-tech-stack)
+- [Key Features](#-key-features)
+- [Folder Structure](#-folder-structure)
+- [Local Development](#-local-development)
+- [Contributing](#-contributing)
+- [License](#-license)
 
 ## 🔧 Tech-stack 
 ### 🧩 Core (Backend)
@@ -157,6 +158,7 @@ This project is licensed under the MIT License. See [LICENSE](./Licence) for det
 ---
 
 ![logo](/public/logo.png)
+
 
 
 
