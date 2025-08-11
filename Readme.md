@@ -151,7 +151,12 @@ npm run dev
 - git checkout -b feat/your-feature
 - Commit your changes, push, open a PR
 
-- [License](#license)
+## License
+This project is licensed under the MIT License. See [LICENSE](./Licence) for details.
+
+---
+
+![logo](/public/logo.png)
 
 
 
