@@ -98,5 +98,40 @@
 - **Error handling utilities:** ApiError, ApiResponse, asyncHandler
 
  ---
-  
+
+## 🛠️ Local development
+
+### Prerequisites
+- Node.js (v16+), npm  
+- MongoDB (local or Atlas)  
+- Cloudinary account (for media uploads)
+
+### Install
+
+**Terminal Commands**
+```bash
+# clone the repo
+git clone https://github.com/dhruvmohan867/Backend-Project.git
+
+# go into project folder
+cd Mega_project
+
+# install dependencies
+npm install
+```
+Run (development)
+
+```bash
+npm run dev
+```
+### 🤝 Contributing
+
+Fork the repo
+git checkout -b feat/your-feature
+Commit your changes, push, open a PR
+
+📝 License
+MIT © 2025 Dhruv Mohan Shukla
+
+
 
