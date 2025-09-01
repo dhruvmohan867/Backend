@@ -344,7 +344,8 @@ const getUserChannel = asyncHandler(async (req, res) => {
         coverImage: 1,
         subscribersCount: 1,
         subscribedToCount: 1,
-        isSubscribed: 1
+        isSubscribed: 1,
+        email: 1
       }
     }
   ]);
