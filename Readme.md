@@ -5,11 +5,12 @@
 ---
 
 ## 📚 Table of Contents
-- [Tech Stack](#Tech-stack)
-- [Key Features](#key-features)
-- [Folder Structure](#folder-structure)
-- [Local Development](#local-development)
-- [License](#License)
+- [Tech Stack](#-tech-stack)
+- [Key Features](#-key-features)
+- [Folder Structure](#-folder-structure)
+- [Local Development](#-local-development)
+- [Contributing](#-contributing)
+- [License](#-license)
 
 ## 🔧 Tech-stack 
 ### 🧩 Core (Backend)
@@ -98,5 +99,74 @@
 - **Error handling utilities:** ApiError, ApiResponse, asyncHandler
 
  ---
-  
+
+ ## 📂 Folder Structure
+
+ ```bash
+  server/
+├── public/
+│ └── temp/
+├── src/
+│ ├── controllers/
+│ ├── db/ 
+│ ├── middlewares/ 
+│ ├── models/ 
+│ ├── routes/ 
+│ ├── utils/ 
+│ ├── app.js 
+│ └── index.js
+├── .env.example 
+├── .gitignore
+├── package.json
+└── Licence
+```
+
+## 🛠️ Local development
+
+### Prerequisites
+- Node.js (v16+), npm  
+- MongoDB (local or Atlas)  
+- Cloudinary account (for media uploads)
+
+### Install
+
+**Terminal Commands**
+```bash
+# clone the repo
+git clone https://github.com/dhruvmohan867/Backend-Project.git
+
+# go into project folder
+cd Mega_project
+
+# install dependencies
+npm install
+```
+Run (development)
+
+```bash
+npm run dev
+```
+### 🤝 Contributing
+
+- Fork the repo
+- git checkout -b feat/your-feature
+- Commit your changes, push, open a PR
+
+
+## License
+This project is licensed under the MIT License. See [LICENSE](./Licence) for details.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
