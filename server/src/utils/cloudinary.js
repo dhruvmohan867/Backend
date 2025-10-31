@@ -5,33 +5,33 @@ dotenv.config();
 
 console.log("Cloudinary env:", {
   name: process.env.CLOUDINARY_CLOUD_NAME,
-  key: process.env.CLOUDINARY_API_KEY,
-  secret: process.env.CLOUDINARY_API_SECRET
+  key: process.env.CLOUDINARY_API_KEY ? '***present***' : undefined,
+  secret: process.env.CLOUDINARY_API_SECRET ? '***present***' : undefined
 });
 
-  cloudinary.config({ 
-        cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
-        api_key: process.env.CLOUDINARY_API_KEY, 
-        api_secret: process.env.CLOUDINARY_API_SECRET
-    });
+cloudinary.config({ 
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
+  api_key: process.env.CLOUDINARY_API_KEY, 
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 const uploadCloudinary = async(localFilePath)=>{
    try{
-     if (!localFilePath){
-      return null;
-    }
-     console.log
+     if (!localFilePath) return null;
+     console.log("Uploading local file:", localFilePath)
      const response = await cloudinary.uploader.upload(localFilePath,{
          resource_type : "auto"
      })
-     console.log("File upload ho gyi hai")
-     console.log(response.url)
-      fs.unlinkSync(localFilePath) // Delete the local file after upload
-     return response;
+     const url = response.secure_url || response.url;
+     console.log("File uploaded to Cloudinary:", url)
+     if (fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath)
+     return {...response, url};
    }
   catch(error){
    console.error("Cloudinary upload error:", error);
-   fs.unlinkSync(localFilePath)
+   if (localFilePath && fs.existsSync(localFilePath)) {
+     try { fs.unlinkSync(localFilePath) } catch(e){ console.error("unlink failed", e) }
+   }
    return null
 }
 }
