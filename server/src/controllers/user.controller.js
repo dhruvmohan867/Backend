@@ -13,7 +13,7 @@ const generateAccessAndRefereshTokens = async(userId) =>{
         const accessToken = user.generateAccessToken()
         const refreshToken = user.generateRefreshToken()
 
-        user.refreshToken = refreshToken
+        user.refreshtoken = refreshToken
         await user.save({ validateBeforeSave: false })
 
         return {accessToken, refreshToken}
@@ -113,11 +113,7 @@ const loginUser = asyncHandler(async (req, res) =>{
         throw new ApiError(400, "username or email is required")
     }
     
-    // Here is an alternative of above code based on logic discussed in video:
-    // if (!(username || email)) {
-    //     throw new ApiError(400, "username or email is required")
-        
-    // }
+  
 
     const user = await User.findOne({
         $or: [{username}, {email}]
