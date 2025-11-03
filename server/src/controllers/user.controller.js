@@ -1,7 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {ApiError} from "../utils/ApiError.js"
 import { User} from "../models/user.model.js"
-import {uploadOnCloudinary} from "../utils/cloudinary.js"
+import { uploadCloudinary } from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken"
 import mongoose from "mongoose";
@@ -36,11 +36,11 @@ const registerUser = asyncHandler( async (req, res) => {
     // return res
 
 
-    const {fullName, email, username, password } = req.body
+    const { fullname, email, username, password } = req.body
     //console.log("email: ", email);
 
     if (
-        [fullName, email, username, password].some((field) => field?.trim() === "")
+        [fullname, email, username, password].some((field) => field?.trim() === "")
     ) {
         throw new ApiError(400, "All fields are required")
     }
@@ -67,8 +67,8 @@ const registerUser = asyncHandler( async (req, res) => {
         throw new ApiError(400, "Avatar file is required")
     }
 
-    const avatar = await uploadOnCloudinary(avatarLocalPath)
-    const coverImage = await uploadOnCloudinary(coverImageLocalPath)
+    const avatar = await uploadCloudinary(avatarLocalPath)
+    const coverImage = await uploadCloudinary(coverImageLocalPath)
 
     if (!avatar) {
         throw new ApiError(400, "Avatar file is required")
@@ -76,7 +76,7 @@ const registerUser = asyncHandler( async (req, res) => {
    
 
     const user = await User.create({
-        fullName,
+        fullname,
         avatar: avatar.url,
         coverImage: coverImage?.url || "",
         email, 
@@ -84,9 +84,7 @@ const registerUser = asyncHandler( async (req, res) => {
         username: username.toLowerCase()
     })
 
-    const createdUser = await User.findById(user._id).select(
-        "-password -refreshToken"
-    )
+    const createdUser = await User.findById(user._id).select("-password -refreshtoken")
 
     if (!createdUser) {
         throw new ApiError(500, "Something went wrong while registering the user")
@@ -131,7 +129,7 @@ const loginUser = asyncHandler(async (req, res) =>{
 
    const {accessToken, refreshToken} = await generateAccessAndRefereshTokens(user._id)
 
-    const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
+    const loggedInUser = await User.findById(user._id).select("-password -refreshtoken")
 
     const options = {
         httpOnly: true,
@@ -158,9 +156,7 @@ const logoutUser = asyncHandler(async(req, res) => {
     await User.findByIdAndUpdate(
         req.user._id,
         {
-            $unset: {
-                refreshToken: 1 // this removes the field from document
-            }
+            $unset: { refreshtoken: 1 }
         },
         {
             new: true
@@ -198,7 +194,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             throw new ApiError(401, "Invalid refresh token")
         }
     
-        if (incomingRefreshToken !== user?.refreshToken) {
+        if (incomingRefreshToken !== user?.refreshtoken) {
             throw new ApiError(401, "Refresh token is expired or used")
             
         }
@@ -208,16 +204,16 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             secure: true
         }
     
-        const {accessToken, newRefreshToken} = await generateAccessAndRefereshTokens(user._id)
+        const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(user._id)
     
         return res
         .status(200)
         .cookie("accessToken", accessToken, options)
-        .cookie("refreshToken", newRefreshToken, options)
+        .cookie("refreshToken", refreshToken, options)
         .json(
             new ApiResponse(
                 200, 
-                {accessToken, refreshToken: newRefreshToken},
+                {accessToken, refreshToken},
                 "Access token refreshed"
             )
         )
@@ -259,9 +255,9 @@ const getCurrentUser = asyncHandler(async(req, res) => {
 })
 
 const updateAccountDetails = asyncHandler(async(req, res) => {
-    const {fullName, email} = req.body
+    const { fullname, email } = req.body
 
-    if (!fullName || !email) {
+    if (!fullname || !email) {
         throw new ApiError(400, "All fields are required")
     }
 
@@ -269,7 +265,7 @@ const updateAccountDetails = asyncHandler(async(req, res) => {
         req.user?._id,
         {
             $set: {
-                fullName,
+                fullname,
                 email: email
             }
         },
@@ -291,7 +287,7 @@ const updateUserAvatar = asyncHandler(async(req, res) => {
 
     //TODO: delete old image - assignment
 
-    const avatar = await uploadOnCloudinary(avatarLocalPath)
+    const avatar = await uploadCloudinary(avatarLocalPath)
 
     if (!avatar.url) {
         throw new ApiError(400, "Error while uploading on avatar")
@@ -325,7 +321,7 @@ const updateUserCoverImage = asyncHandler(async(req, res) => {
     //TODO: delete old image - assignment
 
 
-    const coverImage = await uploadOnCloudinary(coverImageLocalPath)
+    const coverImage = await uploadCloudinary(coverImageLocalPath)
 
     if (!coverImage.url) {
         throw new ApiError(400, "Error while uploading on avatar")
@@ -398,7 +394,7 @@ const getUserChannelProfile = asyncHandler(async(req, res) => {
         },
         {
             $project: {
-                fullName: 1,
+                fullname: 1,
                 username: 1,
                 subscribersCount: 1,
                 channelsSubscribedToCount: 1,
@@ -446,7 +442,7 @@ const getWatchHistory = asyncHandler(async(req, res) => {
                             pipeline: [
                                 {
                                     $project: {
-                                        fullName: 1,
+                                        fullname: 1,
                                         username: 1,
                                         avatar: 1
                                     }
