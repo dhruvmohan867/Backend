@@ -3,7 +3,7 @@
 Backend for a video-sharing platform with secure authentication (JWT access + refresh tokens), user profiles, and Cloudinary-powered media uploads.
 
 - Backend: [server/](server)
-- Client: [client/](client) (bring your own or scaffold with Vite/Next)
+
 
 ---
 
