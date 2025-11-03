@@ -15,24 +15,29 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-const uploadCloudinary = async(localFilePath)=>{
-   try{
-     if (!localFilePath) return null;
-     console.log("Uploading local file:", localFilePath)
-     const response = await cloudinary.uploader.upload(localFilePath,{
-         resource_type : "auto"
-     })
-     const url = response.secure_url || response.url;
-     console.log("File uploaded to Cloudinary:", url)
-     if (fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath)
-     return {...response, url};
-   }
-  catch(error){
-   console.error("Cloudinary upload error:", error);
-   if (localFilePath && fs.existsSync(localFilePath)) {
-     try { fs.unlinkSync(localFilePath) } catch(e){ console.error("unlink failed", e) }
-   }
-   return null
-}
-}
-export {uploadCloudinary}
+const uploadCloudinary = async (localFilePath) => {
+  try {
+    if (!localFilePath) return null;
+    console.log("Uploading local file:", localFilePath);
+    const response = await cloudinary.uploader.upload(localFilePath, {
+      resource_type: "auto",
+    });
+    const url = response.secure_url || response.url;
+    console.log("File uploaded to Cloudinary:", url);
+    if (fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath);
+    return { ...response, url };
+  } catch (error) {
+    console.error("Cloudinary upload error:", error);
+    if (localFilePath && fs.existsSync(localFilePath)) {
+      try {
+        fs.unlinkSync(localFilePath);
+      } catch (e) {
+        console.error("unlink failed", e);
+      }
+    }
+    return null;
+  }
+}; // <-- this was missing
+
+const uploadOnCloudinary = uploadCloudinary;
+export { uploadCloudinary, uploadOnCloudinary }
