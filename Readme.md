@@ -54,23 +54,6 @@ Key files:
 ```bash
 npm install
 ```
-
-2) Create .env (server/.env)
-```md
-PORT=2001
-MONGODB_URL=mongodb+srv://<user>:<pass>@<cluster-host>.mongodb.net
-CORS_ORIGIN=http://localhost:5173
-
-ACCESS_TOKEN_SECRET=<random-long-secret>
-ACCESS_TOKEN_ENTRY=1d
-REFRESH_TOKEN_SECRET=<random-long-secret>
-REFRESH_TOKEN_ENTRY=10d
-
-CLOUDINARY_CLOUD_NAME=<your_cloudinary_cloud_name>
-CLOUDINARY_API_KEY=<your_cloudinary_api_key>
-CLOUDINARY_API_SECRET=<your_cloudinary_api_secret>
-```
-
 3) Run
 ```bash
 # Dev (auto-restart)
