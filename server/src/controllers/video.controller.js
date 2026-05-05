@@ -7,7 +7,7 @@ import {Playlist} from "../models/playlist.model.js"
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
-import {uploadOnCloudinary, deleteFromCloudinary} from "../utils/cloudinary.js"
+import {uploadOnCloudinary, uploadVideoCloudinary, deleteFromCloudinary} from "../utils/cloudinary.js"
 
 // Helper to extract Cloudinary public_id from a URL
 const getPublicId = (url) => url.split('/').slice(-1)[0].split('.')[0];
@@ -109,8 +109,8 @@ const publishAVideo = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Thumbnail is required")
     }
 
-    // Upload video file to Cloudinary with resource_type: "video"
-    const videoFile = await uploadOnCloudinary(videoFileLocalPath)
+    // Upload video file to Cloudinary with explicit resource_type: "video"
+    const videoFile = await uploadVideoCloudinary(videoFileLocalPath)
     if (!videoFile) {
         throw new ApiError(500, "Failed to upload video file to Cloudinary")
     }

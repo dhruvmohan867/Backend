@@ -78,18 +78,16 @@ const getVideoComments = asyncHandler(async (req, res) => {
         }
     ]
 
-    const aggregate = Comment.aggregate(pipeline)
-    const options = {
-        page: parseInt(page),
-        limit: parseInt(limit)
-    }
+    // Manual pagination since Comment model doesn't have aggregatePaginate plugin
+    const pageNum = parseInt(page)
+    const limitNum = parseInt(limit)
+    const skip = (pageNum - 1) * limitNum
 
-    // Comment model doesn't have aggregatePaginate plugin, use manual pagination
-    const skip = (parseInt(page) - 1) * parseInt(limit)
     const totalDocs = await Comment.countDocuments({ video: new mongoose.Types.ObjectId(String(videoId)) })
-    const totalPages = Math.ceil(totalDocs / parseInt(limit))
+    const totalPages = Math.ceil(totalDocs / limitNum)
 
-    pipeline.push({ $skip: skip }, { $limit: parseInt(limit) })
+    // Add pagination stages to pipeline
+    pipeline.push({ $skip: skip }, { $limit: limitNum })
 
     const comments = await Comment.aggregate(pipeline)
 

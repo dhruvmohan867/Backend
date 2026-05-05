@@ -41,6 +41,30 @@ const uploadCloudinary = async (localFilePath) => {
 
 const uploadOnCloudinary = uploadCloudinary;
 
+const uploadVideoCloudinary = async (localFilePath) => {
+  try {
+    if (!localFilePath) return null;
+    console.log("Uploading video file:", localFilePath);
+    const response = await cloudinary.uploader.upload(localFilePath, {
+      resource_type: "video",
+    });
+    const url = response.secure_url || response.url;
+    console.log("Video uploaded to Cloudinary:", url);
+    if (fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath);
+    return { ...response, url };
+  } catch (error) {
+    console.error("Cloudinary video upload error:", error);
+    if (localFilePath && fs.existsSync(localFilePath)) {
+      try {
+        fs.unlinkSync(localFilePath);
+      } catch (e) {
+        console.error("unlink failed", e);
+      }
+    }
+    return null;
+  }
+};
+
 const deleteFromCloudinary = async (publicId, resourceType = "image") => {
   try {
     if (!publicId) return null;
@@ -53,4 +77,4 @@ const deleteFromCloudinary = async (publicId, resourceType = "image") => {
   }
 };
 
-export { uploadCloudinary, uploadOnCloudinary, deleteFromCloudinary }
+export { uploadCloudinary, uploadOnCloudinary, uploadVideoCloudinary, deleteFromCloudinary }
