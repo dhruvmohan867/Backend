@@ -7,6 +7,7 @@ import { HiPlus, HiTrash } from 'react-icons/hi';
 
 export default function Playlists() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [playlists, setPlaylists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -32,7 +33,8 @@ export default function Playlists() {
     } catch (err) { toast.error(err.response?.data?.message || 'Failed'); }
   };
 
-  const deletePlaylist = async (id) => {
+  const deletePlaylist = async (e, id) => {
+    e.stopPropagation();
     try {
       await API.delete(`/playlists/${id}`);
       setPlaylists(playlists.filter((p) => p._id !== id));
@@ -71,14 +73,14 @@ export default function Playlists() {
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
           {playlists.map((p) => (
-            <div key={p._id} className="playlist-card">
+            <div key={p._id} className="playlist-card" onClick={() => navigate(`/playlists/${p._id}`)}>
               <div className="playlist-thumb">
-                {p.previewThumbnail ? <img src={p.previewThumbnail} alt="" /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem' }}>📋</div>}
+                {p.previewThumbnail ? <img src={p.previewThumbnail} alt="" /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', background: 'var(--bg-secondary)' }}>📋</div>}
                 <div className="playlist-count">{p.totalVideos || 0} videos</div>
               </div>
               <div className="playlist-info" style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <div><h3>{p.name}</h3>{p.description && <p>{p.description}</p>}</div>
-                <button className="btn-icon" onClick={() => deletePlaylist(p._id)} style={{ color: 'var(--danger)' }}><HiTrash /></button>
+                <button className="btn-icon" onClick={(e) => deletePlaylist(e, p._id)} style={{ color: 'var(--danger)' }}><HiTrash /></button>
               </div>
             </div>
           ))}

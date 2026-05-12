@@ -147,23 +147,26 @@ const getVideoById = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Invalid video ID")
     }
 
-    // Increment views by 1
-    const video = await Video.findByIdAndUpdate(
-        videoId,
-        { $inc: { views: 1 } },
-        { new: true }
-    ).populate("owner", "fullname username avatar")
+    const video = await Video.findById(videoId).populate("owner", "fullname username avatar")
 
     if (!video) {
         throw new ApiError(404, "Video not found")
     }
 
-    // Add to watch history if user is authenticated (avoid duplicates)
+    let shouldIncrement = true
+
     if (req.user) {
-        await User.findByIdAndUpdate(
-            req.user._id,
-            { $addToSet: { watchHistory: video._id } }
-        )
+        const userDoc = await User.findById(req.user._id)
+        if (userDoc?.watchHistory?.includes(video._id)) {
+            shouldIncrement = false
+        } else {
+            await User.findByIdAndUpdate(req.user._id, { $addToSet: { watchHistory: video._id } })
+        }
+    }
+
+    if (shouldIncrement) {
+        video.views = (video.views || 0) + 1
+        await video.save({ validateBeforeSave: false })
     }
 
     return res.status(200).json(
@@ -231,32 +234,26 @@ const deleteVideo = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Video not found")
     }
 
-    // Only owner can delete
     if (video.owner.toString() !== req.user._id.toString()) {
         throw new ApiError(403, "You are not authorized to delete this video")
     }
 
-    // Delete video file and thumbnail from Cloudinary
-    const videoPublicId = getPublicId(video.videofile)
-    const thumbnailPublicId = getPublicId(video.thumbnail)
+    const session = await mongoose.startSession()
+    try {
+        await session.withTransaction(async () => {
+            await Like.deleteMany({ video: videoId }, { session })
+            await Comment.deleteMany({ video: videoId }, { session })
+            await Playlist.updateMany({ videos: videoId }, { $pull: { videos: videoId } }, { session })
+            await Video.findByIdAndDelete(videoId, { session })
+        })
 
-    await deleteFromCloudinary(videoPublicId, "video")
-    await deleteFromCloudinary(thumbnailPublicId)
-
-    // Delete all associated likes
-    await Like.deleteMany({ video: videoId })
-
-    // Delete all associated comments
-    await Comment.deleteMany({ video: videoId })
-
-    // Remove video from all playlists
-    await Playlist.updateMany(
-        { videos: videoId },
-        { $pull: { videos: videoId } }
-    )
-
-    // Delete the video document
-    await Video.findByIdAndDelete(videoId)
+        const videoPublicId = getPublicId(video.videofile)
+        const thumbnailPublicId = getPublicId(video.thumbnail)
+        await deleteFromCloudinary(videoPublicId, "video")
+        await deleteFromCloudinary(thumbnailPublicId)
+    } finally {
+        await session.endSession()
+    }
 
     return res.status(200).json(
         new ApiResponse(200, null, "Video deleted successfully")
