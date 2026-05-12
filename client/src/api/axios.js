@@ -1,11 +1,11 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: 'http://localhost:2001/api/v1',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:2001/api/v1',
   withCredentials: true,
 });
 
-// Attach access token to every request
+
 API.interceptors.request.use((config) => {
   const token = localStorage.getItem('accessToken');
   if (token) {
@@ -23,7 +23,7 @@ API.interceptors.response.use(
       originalRequest._retry = true;
       try {
         const { data } = await axios.post(
-          'http://localhost:2001/api/v1/users/refresh-token',
+          `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:2001/api/v1'}/users/refresh-token`,
           {},
           { withCredentials: true }
         );
