@@ -3,7 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import API from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
-import { HiVideoCamera, HiUsers, HiEye, HiThumbUp, HiTrash, HiEyeOff } from 'react-icons/hi';
+import { 
+  HiVideoCamera, 
+  HiUsers, 
+  HiEye, 
+  HiThumbUp, 
+  HiTrash, 
+  HiEyeOff 
+} from 'react-icons/hi';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -11,31 +18,68 @@ export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // NEW: Track which video is currently being processed to disable buttons
+  const [processingId, setProcessingId] = useState(null);
 
   useEffect(() => {
     if (!user) return;
     Promise.all([API.get('/dashboard/stats'), API.get('/dashboard/videos')])
-      .then(([s, v]) => { setStats(s.data.data); setVideos(v.data.data || []); })
-      .catch(() => {})
+      .then(([statsRes, videosRes]) => { 
+        setStats(statsRes.data.data); 
+        setVideos(videosRes.data.data || []); 
+      })
+      .catch((err) => {
+        toast.error('Failed to load dashboard data');
+        console.error(err);
+      })
       .finally(() => setLoading(false));
   }, [user]);
 
   const togglePublish = async (id) => {
+    // 1. Find the current status
+    const videoToUpdate = videos.find(v => v._id === id);
+    const currentStatus = videoToUpdate.isPublish;
+
+    // 2. OPTIMISTIC UI UPDATE: Instantly change the UI before the API finishes
+    setVideos(videos.map(v => 
+      v._id === id ? { ...v, isPublish: !currentStatus } : v
+    ));
+
     try {
-      const { data } = await API.patch(`/videos/toggle/publish/${id}`);
-      setVideos(videos.map(v => v._id === id ? { ...v, isPublish: data.data.isPublish } : v));
-      toast.success(data.data.isPublish ? 'Published' : 'Unpublished');
-    } catch { toast.error('Failed'); }
+      // 3. Make the API call in the background
+      await API.patch(`/videos/toggle/publish/${id}`);
+      toast.success(!currentStatus ? 'Video Published' : 'Video Unpublished');
+    } catch (err) {
+      // 4. If the API fails, revert the UI back to its original state
+      setVideos(videos.map(v => 
+        v._id === id ? { ...v, isPublish: currentStatus } : v
+      ));
+      toast.error('Failed to update status');
+    }
   };
 
   const deleteVideo = async (id) => {
-    if (!confirm('Delete this video permanently?')) return;
+    if (!window.confirm('Delete this video permanently? This action cannot be undone.')) return;
+    
+    setProcessingId(id); // Disable buttons for this specific video
+
     try {
       await API.delete(`/videos/${id}`);
       setVideos(videos.filter(v => v._id !== id));
-      setStats(s => ({ ...s, totalVideos: (s.totalVideos || 1) - 1 }));
-      toast.success('Video deleted');
-    } catch { toast.error('Failed'); }
+      
+      // SAFE STATE UPDATE: Check if stats exists before updating to prevent crashes
+      setStats(prevStats => prevStats 
+        ? { ...prevStats, totalVideos: Math.max(0, prevStats.totalVideos - 1) } 
+        : prevStats
+      );
+      
+      toast.success('Video deleted successfully');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete video');
+    } finally {
+      setProcessingId(null); // Re-enable buttons
+    }
   };
 
   if (!user) return <div className="empty-state"><h3>Please sign in</h3></div>;
@@ -79,22 +123,47 @@ export default function Dashboard() {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {videos.map((v) => (
-            <div key={v._id} className="card" style={{ padding: 16, animation: 'fadeInUp 0.4s ease both' }}>
+          {videos.map((video) => (
+            <div key={video._id} className="card" style={{ padding: 16, animation: 'fadeInUp 0.4s ease both' }}>
               <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-                {v.thumbnail && <img src={v.thumbnail} alt="" style={{ width: 140, height: 80, objectFit: 'cover', borderRadius: 'var(--radius-sm)', cursor: 'pointer' }} onClick={() => navigate(`/video/${v._id}`)} />}
+                {video.thumbnail && (
+                  <img 
+                    src={video.thumbnail} 
+                    alt={video.title} 
+                    style={{ width: 140, height: 80, objectFit: 'cover', borderRadius: 'var(--radius-sm)', cursor: 'pointer' }} 
+                    onClick={() => navigate(`/video/${video._id}`)} 
+                  />
+                )}
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, fontSize: '0.95rem', marginBottom: 6, cursor: 'pointer' }} onClick={() => navigate(`/video/${v._id}`)}>{v.title}</div>
+                  <div style={{ fontWeight: 600, fontSize: '0.95rem', marginBottom: 6, cursor: 'pointer' }} onClick={() => navigate(`/video/${video._id}`)}>
+                    {video.title}
+                  </div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                    <span>{v.views || 0} views</span>
-                    <span style={{ color: v.isPublish ? 'var(--success)' : 'var(--danger)' }}>{v.isPublish ? '● Published' : '● Unpublished'}</span>
+                    <span>{video.views || 0} views</span>
+                    <span style={{ color: video.isPublish ? 'var(--success)' : 'var(--warning)' }}>
+                      {video.isPublish ? '● Published' : '● Private'}
+                    </span>
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button className="btn btn-secondary btn-sm" onClick={() => togglePublish(v._id)} title={v.isPublish ? 'Unpublish' : 'Publish'}>
-                    <HiEyeOff /> {v.isPublish ? 'Hide' : 'Show'}
+                  <button 
+                    className="btn btn-secondary btn-sm" 
+                    onClick={() => togglePublish(video._id)} 
+                    disabled={processingId === video._id}
+                    title={video.isPublish ? 'Make Private' : 'Publish'}
+                  >
+                    {video.isPublish ? <><HiEyeOff style={{marginRight: 4}}/> Hide</> : <><HiEye style={{marginRight: 4}}/> Show</>}
                   </button>
-                  <button className="btn btn-sm" onClick={() => deleteVideo(v._id)} style={{ background: 'rgba(248,113,113,0.1)', color: 'var(--danger)' }}>
+                  <button 
+                    className="btn btn-sm" 
+                    onClick={() => deleteVideo(video._id)} 
+                    disabled={processingId === video._id}
+                    style={{ 
+                      background: processingId === video._id ? 'var(--bg-hover)' : 'rgba(248,113,113,0.1)', 
+                      color: processingId === video._id ? 'var(--text-muted)' : 'var(--danger)',
+                      cursor: processingId === video._id ? 'not-allowed' : 'pointer'
+                    }}
+                  >
                     <HiTrash />
                   </button>
                 </div>
